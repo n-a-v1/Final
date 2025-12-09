@@ -510,6 +510,65 @@ Why we use them
 * `name` is per instance → `s1.name` and `s2.name` can be different.
 * `school_name` lives on the class → changing it once affects all students.
 
+## Abstract Base Classes 
+An Abstract Base Class (often referred to as an ABC) is a mechanism used to define "generic classes." These classes define a specific public interface (a set of methods) without actually implementing the logic for them. 
+Like a strict blueprint, tells subclasses what methods they need without telling them how those methods should work.
+
+**Why:** 
+* Enforcing interfaces(insures child classes follow a guideline to prevent issues down the line)
+* Polymorphism(Allows the use of different objects the same way) --- Example below
+
+
+```python
+from abc import ABC, abstractmethod
+
+# 1. Define the Abstract Base Class
+class Animal(ABC):
+    
+    def __init__(self, name):
+        self.name = name
+
+    # 2. Define the abstract method (The Interface)
+    # This acts as a rule: "All animals must make a sound"
+    @abstractmethod
+    def sound(self):
+        pass
+
+# 3. Define Child Classes (Concrete Classes)
+
+class Dog(Animal):
+    # We MUST implement sound(), or this class will error
+    def sound(self):
+        return "Woof"
+
+class Cow(Animal):
+    def sound(self):
+        return "Moo"
+
+# Usage
+# my_animal = Animal("Generic") # This would RAISE AN ERROR because you cannot instantiate an ABC
+
+dog = Dog("Buddy")
+cow = Cow("Daisy")
+
+print(f"{dog.name} says {dog.sound()}") # Output: Buddy says Woof
+print(f"{cow.name} says {cow.sound()}") # Output: Daisy says Moo
+
+# Polymorphism check
+print(isinstance(cow, Animal)) # Output: True [2]
+```
+```python
+# This is BAD (Not Polymorphic)
+if type(my_animal) == Cow:
+    my_animal.moo()
+elif type(my_animal) == Dog:
+    my_animal.bark()
+
+# This is GOOD (Polymorphic)
+# You don't care if it is a Cow or a Dog, you just know it is an "Animal", so it MUST have a .sound() method.
+my_animal.sound()
+```
+
 ## Class Method Vs Instance Method
 
 ```python
@@ -741,6 +800,61 @@ class Base(DeclarativeBase):                              # Base = parent for al
 
 ---
 
+
+
+## `app/main.py` – create tables, add data, query with `select()`
+
+```python
+from sqlalchemy import select                      # 2.0-style statement API
+from .database import Base, engine, Session
+from .models import Category, Book
+
+class Book(Base):
+    # Optional: explicitly name the table (good practice)
+    __tablename__ = "books"
+
+    # 1. Primary Key (Required)
+    # This uniquely identifies every row in the table
+    id = Column(Integer, primary_key=True)
+
+    # 2. Data Attributes
+    # These map to columns in the SQL table
+    title = Column(String)
+    rating = Column(Integer)
+    available = Column(Integer)
+
+    # Optional: A standard Python __repr__ to make printing the object readable
+    def __repr__(self):
+        return f"<Book(title={self.title}, rating={self.rating})>"
+
+# 1) Create tables from all Base child classes, run it after creating the table class
+Base.metadata.create_all(engine)                   # reads metadata from Base + mapped classes
+
+# 2) Work with a Session (unit of work)
+with Session() as session:                         # best practice: context manager
+
+    # --- add rows ---
+    sci = Category(name="Sci-Fi")
+    b1 = Book(title="Dune", price=DECIMAL(10, 2)("29.99"), available=5, category=sci)
+    b2 = Book(title="Neuromancer", price=DECIMAL(10, 2)("19.99"), available=3, category=sci)
+
+    session.add_all([sci, b1, b2])                 # stage objects for INSERT
+    session.commit()                               # write changes to DB (objects → rows)
+
+    # --- simple select ---
+    stmt = select(Book).where(Book.available > 0)  # build SQL-like statement
+    results = session.execute(stmt)                # run on engine via Session
+    books = results.scalars().all()               # .scalars() → mapped objects, .all() → list
+
+    # --- follow relationship attributes ---
+    for book in books:
+        print(book.title, "in category", book.category.name)  # uses Book.category relationship
+```
+
+## `app/__init__.py` – (optional, but common)
+```python
+# makes app/ a package so you can use `from app.models import Book`
+```
 ## `app/models.py` – Mapped classes + one-to-many relationship
 
 ```python
@@ -771,43 +885,6 @@ class Book(Base):
 ```python
 # Type hinting example
     id: Mapped[int] = mapped_column(primary_key=True)
-```
-
-
-## `app/main.py` – create tables, add data, query with `select()`
-
-```python
-from sqlalchemy import select                      # 2.0-style statement API
-from .database import Base, engine, Session
-from .models import Category, Book
-
-# 1) Create tables from all Base child classes
-Base.metadata.create_all(engine)                   # reads metadata from Base + mapped classes
-
-# 2) Work with a Session (unit of work)
-with Session() as session:                         # best practice: context manager
-
-    # --- add rows ---
-    sci = Category(name="Sci-Fi")
-    b1 = Book(title="Dune", price=DECIMAL(10, 2)("29.99"), available=5, category=sci)
-    b2 = Book(title="Neuromancer", price=DECIMAL(10, 2)("19.99"), available=3, category=sci)
-
-    session.add_all([sci, b1, b2])                 # stage objects for INSERT
-    session.commit()                               # write changes to DB (objects → rows)
-
-    # --- simple select ---
-    stmt = select(Book).where(Book.available > 0)  # build SQL-like statement
-    results = session.execute(stmt)                # run on engine via Session
-    books = results.scalars().all()               # .scalars() → mapped objects, .all() → list
-
-    # --- follow relationship attributes ---
-    for book in books:
-        print(book.title, "in category", book.category.name)  # uses Book.category relationship
-```
-
-## `app/__init__.py` – (optional, but common)
-```python
-# makes app/ a package so you can use `from app.models import Book`
 ```
 
 # **Flask**
