@@ -6,19 +6,14 @@
 
 ```python
 # my_print.py
-
 MY_MESSAGE = "Hello!"
-
 def my_print_func(text: str) -> None:
     print(MY_MESSAGE)
     print(text)
 ```
-
 This file **is** a module called `my_print`.
 
 ## Step 2 – Import the module in another file
-
-**`main.py`**
 
 ```python
 # main.py
@@ -40,9 +35,8 @@ Key points:
 
 ## Step 3 – Importing specific names
 
-Instead of importing the whole module:
-
 ```python
+#Instead of importing the whole module:
 from my_print import MY_MESSAGE, my_print_func
 
 def main():
@@ -173,27 +167,22 @@ Reasons we use relative imports inside a package:
 ## 3. Simple rules to remember for Import
 
 ```python
-# import (no leading dots)
+# absolute import (no leading dots)
 import logic
 import logic.player
 
-# from-import (dots allowed)
+# relative from-import (dots allowed)
 from logic import player
 from .player import <module/func/variable/class>       # same package
 from ..constants import <module/func/variable/class>  # parent package
 ```
 
-## 4. Extra: important “module gotchas”
-
-### 4.1 Import runs the module code once
+### Gotcha: Import runs the module code once
 
 ```python
 # my_mod.py
 print("Top level running!")
 X = 42
-```
-
-```python
 # main.py
 import my_mod
 import my_mod
@@ -217,34 +206,25 @@ if __name__ == "__main__":
 
 # **Virtual Environments Venv**
 
-**MUST Use python to run code and pip (or uv add) to install packages (not py, python3, etc.)**
-**Purpose (1-liners):**
+
+**Purpose:**
 
 ```text
 venv = isolated Python env per project
 use venv to avoid global package/version conflicts
 after activation: only use `python` + `pip`
 ```
-
-**Create venv (classic):**
-
 ```bash
+Create venv (classic):
 # Windows
 py -m venv venv
-```
 
-**Create venv (uv):**
-
-```bash
+Create venv (uv):
 uv venv venv
-```
 
-**Activate venv:**
-
-```bash
+Activate venv:
 # Windows cmd
 .\venv\Scripts\activate.bat
-
 # Windows PowerShell
 .\venv\Scripts\activate.ps1
 ```
@@ -252,7 +232,8 @@ uv venv venv
 **Use venv:**
 
 ```bash
-python my_app.py
+activate venv  # `python` now points to venv's Python
+python my_app.py       # MUST Use python to run code, not py or python3, will run app using venv's interpreter + packages
 pip install PACKAGE       # classic
 uv add PACKAGE            # if using uv
 deactivate                # optional
@@ -294,7 +275,7 @@ dependencies = [
 
 # **Pytest, Unit Test, @pytest.fixtures**
 
-## Core rules box
+### Core rules box: pytest
 
 ```text
 pytest
@@ -302,117 +283,49 @@ pytest
 - run: pytest
 - test files: test_*.py or *_test.py
 - test funcs: def test_something():
-```
 
-```text
 unittest vs pytest
 - unittest: built-in, class-based (TestCase, setUp/tearDown)
-- pytest: external package, simple function tests, still supports classes + fixtures
-- this course: pytest is the main tool
+- pytest: external package, simple function tests, still supports classes + fixtures. Our course focuses on pytest
 ```
 
-## Basic test skeleton (value check)
-
 ```python
-# code to test
-def add_values(a, b):
+def add_values(a, b): # code to test
     return a + b
 
 # test file: test_add_values.py
 def test_add_values():
     result = add_values(2, 3)  # Act
     assert result == 5         # Assert
-```
 
-## Testing exceptions
-
-```python
-import pytest
-
-def test_add_values_invalid():
-    with pytest.raises(TypeError):
-        add_values([1], [2])
-```
-
-```python
-import pytest
-
-def test_parse_int_invalid():
-    with pytest.raises(ValueError):
-        parse_int("abc")
-```
-
-```text
-common exception types for pytest.raises:
-- ValueError: wrong *value* type/format (e.g., int("abc"), parse_int("cat"))
-- TypeError: wrong *type* of argument (e.g., 1 + "2", func(expects_list="abc"))
-- ZeroDivisionError: dividing by zero (e.g., 1 / 0)
-- KeyError: missing key in dict (e.g., d["missing_key"])
-- IndexError: index out of range in list/string (e.g., lst[100] on a short list)
-```
-
-## Fixture example (consistent setup)
-
-```python
-import pytest
-
-class Cart:
-    def __init__(self):
-        self.items = []
-    def add(self, x):
-        self.items.append(x)
-
-@pytest.fixture
-def empty_cart():
-    return Cart()  # setup shared object
-
-def test_cart_starts_empty(empty_cart):
-    assert empty_cart.items == []
-
-def test_cart_adds_items(empty_cart):
-    empty_cart.add("apple")
-    assert empty_cart.items == ["apple"]
-```
-
-```text
-@fixture = reusable setup
-- define with @pytest.fixture
-- tests get it by listing name as parameter
-- fixture sets up consistent test data/state for one or more tests
-- keeps tests clean by avoiding repeated setup code
-```
-
-## Common pytest patterns a prof will test
-
-**1) Simple assert**
-
-```python
+# Other Examples
+# 1) Simple assert
 def test_uppercase():
     assert "abc".upper() == "ABC"
-```
 
-**2) Multiple asserts**
-
-```python
+# 2) Multiple asserts
 def test_len_and_membership():
     data = [1, 2, 3]
     assert len(data) == 3
     assert 2 in data
-```
 
-**3) Testing function that raises**
 
-```python
-import pytest
+# Testing exceptions
+import pytest # MUST IMPORT TO USE pytest.raises
+
+def test_add_values_invalid():
+    with pytest.raises(TypeError):
+        add_values([1], [2])  # invalid type giving list instead of number
+
+def test_parse_int_invalid():
+    with pytest.raises(ValueError): 
+        parse_int("abc")
 
 def test_divide_by_zero():
     with pytest.raises(ZeroDivisionError):
         1 / 0
-```
 
-**4) Class-based tests**
-
-```python
+# 4) Class-based tests
 class TestMath:
     def test_add(self):
         assert 1 + 1 == 2
@@ -420,6 +333,38 @@ class TestMath:
     def test_minus(self):
         assert 5 - 3 == 2
 ```
+```text
+common exception types for pytest.raises:
+- ValueError: wrong *value* CORRECT TYPE (e.g., int("abc") expects a string so CORRECT TYPE, but cant turn the VALUE of abc into an int.)
+- TypeError: wrong *type* of argument (e.g., 1 + "2", func(expects_list="abc"))
+- ZeroDivisionError: dividing by zero (e.g., 1 / 0)
+- KeyError: missing key in dict (e.g., d["missing_key"])
+- IndexError: index out of range in list/string (e.g., lst[100] on a short list)
+```
+
+## Fixture example (consistent setup)
+We use pytest fixtures to set up reusable, consistent test “starting states” instead of copy-pasting setup code into every test.
+That setup goes in a fixture(the function name below the decorator), and tests just ask for it by name.
+We use pytest fixtures to set up reusable, consistent test “starting states” instead of copy-pasting setup code into every test.
+import pytest
+```python
+class BankAccount:
+    def __init__(self):
+        self.balance = 0
+    def deposit(self, amount):
+        self.balance += amount
+
+# fixture: returns a fresh account with $100 loaded
+@pytest.fixture
+def account_with_100():
+    acct = BankAccount()
+    acct.deposit(100)
+    return acct
+
+def test_account_starts_with_100(account_with_100):
+    assert account_with_100.balance == 100
+```
+
 
 # **Classes & Objects**
 
@@ -510,7 +455,48 @@ Why we use them
 * `name` is per instance → `s1.name` and `s2.name` can be different.
 * `school_name` lives on the class → changing it once affects all students.
 
-## Abstract Base Classes 
+## Class Method Vs Instance Method
+
+```python
+class Student:
+    school_name = "BCIT"  # class attribute
+
+    def __init__(self, name):
+        self.name = name  # instance attribute
+
+    # instance method (most common)
+    def introduce(self):
+        # self = specific student (s1, s2, etc.)
+        print(f"Hi, I'm {self.name} from {self.school_name}")
+
+    # class method
+    @classmethod
+    def set_school(cls, new_name):
+        # cls = the class Student
+        cls.school_name = new_name
+
+    # another class method as "alternate constructor"
+    @classmethod
+    def from_string(cls, data: str):
+        # "Ryan" -> Student("Ryan")
+        name = data.strip()
+        return cls(name)
+```
+
+**Usage:**
+
+```python
+s1 = Student("Ryan")
+s2 = Student.from_string("Marcus")   # uses classmethod as alt constructor
+
+s1.introduce()   # self = s1
+s2.introduce()   # self = s2
+
+Student.set_school("BCIT CIT Program")  # change class-wide setting
+s1.introduce()   # now prints new school name
+s2.introduce()
+```
+# Abstract Base Classes 
 An Abstract Base Class (often referred to as an ABC) is a mechanism used to define "generic classes." These classes define a specific public interface (a set of methods) without actually implementing the logic for them. 
 Like a strict blueprint, tells subclasses what methods they need without telling them how those methods should work.
 
@@ -564,55 +550,10 @@ if type(my_animal) == Cow:
 elif type(my_animal) == Dog:
     my_animal.bark()
 
-# This is GOOD (Polymorphic)
+# This below is GOOD (Polymorphic)
 # You don't care if it is a Cow or a Dog, you just know it is an "Animal", so it MUST have a .sound() method.
 my_animal.sound()
 ```
-
-## Class Method Vs Instance Method
-
-```python
-class Student:
-    school_name = "BCIT"  # class attribute
-
-    def __init__(self, name):
-        self.name = name  # instance attribute
-
-    # instance method (most common)
-    def introduce(self):
-        # self = specific student (s1, s2, etc.)
-        print(f"Hi, I'm {self.name} from {self.school_name}")
-
-    # class method
-    @classmethod
-    def set_school(cls, new_name):
-        # cls = the class Student
-        cls.school_name = new_name
-
-    # another class method as "alternate constructor"
-    @classmethod
-    def from_string(cls, data: str):
-        # "Ryan" -> Student("Ryan")
-        name = data.strip()
-        return cls(name)
-```
-
-**Usage:**
-
-```python
-s1 = Student("Ryan")
-s2 = Student.from_string("Marcus")   # uses classmethod as alt constructor
-
-s1.introduce()   # self = s1
-s2.introduce()   # self = s2
-
-Student.set_school("BCIT CIT Program")  # change class-wide setting
-s1.introduce()   # now prints new school name
-s2.introduce()
-```
-
-# **Encapsulation, Public/Private, Properties**
-
 ```text
 Encapsulation (concept)
 - hide internal details, expose a clean public interface
@@ -764,16 +705,46 @@ Polymorphism = your code can treat everything as a Vehicle, call start(), and ge
 ```
 
 ---
-# **SQLAlchemy 2.0 (ORM, Engine, Session, Base, Relationships)**
-**Core ideas (super short):**
-ORM = map DB rows ↔ Python objects (mapped classes).
-Engine = DB connection. Session = “unit of work” (tracks objects, commit/rollback).
-`Base` = parent class that knows all tables.
-`mapped_column`/`Mapped` = typed columns for SQLAlchemy 2.0.
-`ForeignKey` + `relationship` = links tables (one-to-many, many-to-many).
+# **SQLAlchemy ONLY**
+```text
+ORM (Object Relational Mapping)
+- Technique that maps Python objects ↔ rows in relational DB tables.
+- You work with classes/objects instead of writing raw SQL strings.
+- SQLAlchemy ORM: Class = table    Instance = row      Attribute = column
+
+Mapped Class:
+- A normal Python class that SQLAlchemy has registered as a DB table.
+- anything that inherits `(Base)` or `(db.model)`
+
+Mapped types: Integer, String, Text, Boolean, DateTime, Float, etc.
+- Tell SQLAlchemy what kind of data the column stores + how to map it to Python.
+
+Column constraints: primary_key=True, nullable=False, unique=True, default=..., server_default=...
+```
+
+```python
+from sqlalchemy import Integer, String
+from sqlalchemy.orm import DeclarativeBase, mapped_column
+# Base class for all mapped classes (DeclarativeBase)
+class Base(DeclarativeBase):
+    pass
+
+class Product(Base):  # Product inherits from Base -> mapped class
+    __tablename__ = "product"  # __tablename__ = "name_of_table"
+
+    # mapped_column(Type, ...) -> define mapped attributes(columns) with mapped types
+    id = mapped_column(Integer, primary_key=True)        # mapped type: Integer (PK)
+    name = mapped_column(String(100), nullable=False)    # mapped type: String
+
+    # Product is a mapped class:
+    # - Product objects <-> rows in "product" table
+    # - id, name attributes <-> columns
+
+```
 
 
-## Folder layout (typical bare-bones SQLAlchemy project)
+
+## Folder layout (simple SQLAlchemy project)
 ```text
 sqlalchemy_demo/
   app/
@@ -790,277 +761,394 @@ sqlalchemy_demo/
 ```python
 from sqlalchemy import create_engine              # Engine: DB connection + SQL executor
 from sqlalchemy.orm import sessionmaker, DeclarativeBase  # Session factory + ORM base
-
 engine = create_engine("sqlite:///demo.db", echo=True)    # echo=True logs SQL; set False to hide
 Session = sessionmaker(bind=engine)                       # Session() = ORM work unit (rows ↔ objects, commit/rollback)
-
 class Base(DeclarativeBase):                              # Base = parent for all ORM child classes
     pass                                                  # holds metadata + registry of mapped tables
 ```
 
+# NEED TO FINISH SQL ALCHEMY ONLY
 ---
-
-
-
-## `app/main.py` – create tables, add data, query with `select()`
-
-```python
-from sqlalchemy import select                      # 2.0-style statement API
-from .database import Base, engine, Session
-from .models import Category, Book
-
-class Book(Base):
-    # Optional: explicitly name the table (good practice)
-    __tablename__ = "books"
-
-    # 1. Primary Key (Required)
-    # This uniquely identifies every row in the table
-    id = Column(Integer, primary_key=True)
-
-    # 2. Data Attributes
-    # These map to columns in the SQL table
-    title = Column(String)
-    rating = Column(Integer)
-    available = Column(Integer)
-
-    # Optional: A standard Python __repr__ to make printing the object readable
-    def __repr__(self):
-        return f"<Book(title={self.title}, rating={self.rating})>"
-
-# 1) Create tables from all Base child classes, run it after creating the table class
-Base.metadata.create_all(engine)                   # reads metadata from Base + mapped classes
-
-# 2) Work with a Session (unit of work)
-with Session() as session:                         # best practice: context manager
-
-    # --- add rows ---
-    sci = Category(name="Sci-Fi")
-    b1 = Book(title="Dune", price=DECIMAL(10, 2)("29.99"), available=5, category=sci)
-    b2 = Book(title="Neuromancer", price=DECIMAL(10, 2)("19.99"), available=3, category=sci)
-
-    session.add_all([sci, b1, b2])                 # stage objects for INSERT
-    session.commit()                               # write changes to DB (objects → rows)
-
-    # --- simple select ---
-    stmt = select(Book).where(Book.available > 0)  # build SQL-like statement
-    results = session.execute(stmt)                # run on engine via Session
-    books = results.scalars().all()               # .scalars() → mapped objects, .all() → list
-
-    # --- follow relationship attributes ---
-    for book in books:
-        print(book.title, "in category", book.category.name)  # uses Book.category relationship
-```
-
-## `app/__init__.py` – (optional, but common)
-```python
-# makes app/ a package so you can use `from app.models import Book`
-```
-## `app/models.py` – Mapped classes + one-to-many relationship
-
-```python
-from sqlalchemy import String, Integer, DECIMAL, ForeignKey   # SQL types + FK
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from .database import Base
-
-class Category(Base):                                # mapped class = table
-    __tablename__ = "categories"                     # table name in DB
-
-    id: Mapped[int] = mapped_column(primary_key=True)    # INTEGER PK AUTOINCREMENT
-    name: Mapped[str] = mapped_column(String)            # TEXT/VARCHAR column
-
-    books: Mapped[list["Book"]] = relationship(          # one Category → many Book
-        back_populates="category"                        # matches Book.category
-    )
-
-class Book(Base):
-    __tablename__ = "books"
-
-    id = mapped_column(Integer, primary_key=True)          # PK
-    title = mapped_column(String)                          # book title
-    price = mapped_column(DECIMAL(10, 2))                  # money DECIMAL(precision, scale)
-    available = mapped_column(Integer, default=0)          # stock
-    category_id = mapped_column(ForeignKey("categories.id"))  # FK → categories.id
-
-```
-```python
-# Type hinting example
-    id: Mapped[int] = mapped_column(primary_key=True)
-```
+---
+---
+---
+---
+---
 
 # **Flask**
 
-## 1) Basic app structure – single file
-
-```python
-# app.py
-from flask import Flask, render_template, request, redirect, url_for  # core Flask
-
-app = Flask(__name__)  # Flask instance = web app (loads config, finds templates/static)
-
-@app.route("/")  # route: GET /
-def home():      # view function: handles request, returns response
-    return "<h1>Hello Flask</h1>"  # simple HTML response string
-
-@app.route("/hello/<name>")        # dynamic URL: /hello/Ryan → name="Ryan"
-def hello(name):
-    return f"Hi {name}!"
-
-@app.route("/submit", methods=["GET","POST"])  # allow both GET+POST
-def submit():
-    if request.method == "POST":              # form submit
-        data = request.form["username"]       # POST form data
-        return redirect(url_for("hello",name=data))  # build URL from endpoint name
-    return render_template("form.html")       # GET: render template file
-
-if __name__ == "__main__":                    # run dev server
-    app.run(debug=True)                       # debug=True = auto reload + error page
-```
-
----
-
-## 2) Application Factory Pattern + Blueprints
-
-### **Folder layout (tiny):**
-
 ```text
-flask_app/
-  app/
-    __init__.py      # create_app
-    pages.py         # blueprint
-    templates/
-      pages/
-        home.html
+Why Flask?
+  * Lightweight, simple, and easy to use for web apps / APIs
+  * Lots of libraries and extensions available
+  * Great official docs, including a full step-by-step tutorial
+What is Flask?
+  * A **microframework** that handles most of the HTTP request/response work
+  * Implements **WSGI** (Web Server Gateway Interface) → standard way for Python apps to talk to web servers
+  * Built-in **JSON** support (easy serialize/deserialize)
+  * Comes with a **development server** so you can run and test locally
+  * Built on top of **Werkzeug** (powerful underlying library for WSGI, routing, etc.)
+```
+# Application structure
+## Flask applications are built on these core concepts:
+```text
+Application: Central object managing the entire web application
+Views: Functions that handle requests and generate responses
+Routes: URL patterns that map to view functions
+Templates: Jinja2-powered HTML files for dynamic content generation
+Blueprints: Modular components for organizing application functionality
 ```
 
-### **`app/pages.py` – blueprint module**
+### Flask Class Instantiation
 
 ```python
-from flask import Blueprint, render_template, request
+from flask import Flask
+app = Flask(__name__)   # instantiate the Flask class
+```
 
-pages_bp = Blueprint("pages",__name__)  # name used in url_for("pages.home")
+* `Flask` is a **class** provided by the framework.
+* `Flask(__name__)` **creates the application object** your project uses.
+* `__name__` helps Flask locate templates, static files, etc.
+* **All routes, config, and extensions are handed off to this `app` instance** (everything attaches to it).
 
-@pages_bp.route("/")                    # route now lives on blueprint, not app
+
+## Flask Application
+Flask application is the Central object that represents your web application. Its an instance of the `Flask` class and is entry point for handling http requests
+
+**Flask application responsibilities:**
+```text
+Initialize the application with configuration
+Register blueprints and routes
+Handle the request/response cycle
+Manage application context and configuration
+Provide access to app-wide resources
+```
+
+
+## Simple Flask Project Folder Example
+```text
+# STRUCTURE
+# my_flask_app/
+# ├─ run.py
+# ├─ requirements.txt
+# └─ app/
+#    ├─ __init__.py
+#    ├─ routes.py
+#    ├─ models.py
+#    ├─ templates/
+#    │  └─ index.html
+#    └─ static/
+#       └─ style.css
+```
+```python
+# ========= run.py =========
+from app import create_app          # import factory from package
+app = create_app()                  # create Flask app instance
+if __name__ == "__main__":          # only if file run directly
+    app.run(debug=True)             # start dev server
+
+# ======== app/__init__.py ======== APPLICATION FACTORY
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()                   # global db object shared by models
+
+def create_app():                   # app factory (returns configured app)
+    app = Flask(__name__)           # __name__ = this module path
+    app.config["SECRET_KEY"] = "dev-secret-key"        # for sessions/forms
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///demo.db"  # DB URL
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False         # disable extra overhead
+    db.init_app(app)                # bind db to this app
+    from .routes import main_bp     # import blueprint AFTER app exists
+    app.register_blueprint(main_bp) # attach routes to app
+    return app
+
+# ======== app/models.py ========
+from . import db                    # use same db as in __init__
+
+class User(db.Model):               # ORM mapped class → users table
+    id = db.Column(db.Integer, primary_key=True)                 # PK
+    username = db.Column(db.String(80), unique=True, nullable=False)  # NOT NULL + UNIQUE
+    def __repr__(self):
+        return f"<User {self.username!r}>"   # nice debug display
+
+# ======== app/routes.py ========
+from flask import Blueprint, render_template
+from .models import User
+from . import db
+
+main_bp = Blueprint("main", __name__)   # blueprint = mini app module
+
+@main_bp.route("/")                     # route for "/"
+def index():
+    # SQLAlchemy 2.0 style query: select(User) → execute → scalars().all()
+    users = db.session.execute(db.select(User)).scalars().all()
+    return render_template("index.html", users=users)  # pass data to template
+
+```
+
+
+
+## Application Factory Pattern
+**App Factory Pattern: rather than have `app = Flask(__name__)` Global, its inside a function**
+```python
+from flask import Flask
+
+def create_app(config=None):
+    app = Flask(__name__)              # create a new App Factory
+
+    # 1) load config here if needed
+    # 2) register blueprints here
+    # 3) init extensions (db, login_manager, etc.)
+
+    return app                         # give the caller the ready-to-use app
+```
+#### **Why use create_app() instead of global `app = Flask(__name__)`?**
+```text
+- Can create **multiple app instances** with different configs (dev/prod/tests).
+- Avoids **circular imports** (routes/blueprints live in separate files).
+- **Easier testing**: tests just call `create_app(test_config)`.
+
+- Without factory: one global app made at import time = less flexible.
+- With factory: call a function that **builds + configures + wires + returns** a fresh app.
+```
+
+
+
+# **Flask Routing**
+
+## @app.route decorator
+`@app.route("/something")` tells Flask: **“When a browser asks for this URL, call this function.”**
+
+**HTTP Methods**
+- "GET" → browser is asking for the page from you (server) (load the form, show HTML).
+- "POST" → browser is sending data made by users to you (server) (submitting a form).
+- `request.method` = "GET" or "POST"; use it in `if` to choose between “show form” and “handle submitted form”.
+
+```python
+from flask import Flask, render_template, request
+
+app = Flask(__name__)
+
+@app.route("/feedback", methods=["GET", "POST"])
+def feedback():
+    if request.method == "GET":              # browser is asking for the page
+        return render_template("feedback.html")  # show the empty form
+
+    if request.method == "POST":             # browser is sending form data
+        msg = request.form.get("message")    # read <input name="message">
+        # here you would save msg to a DB, send email, etc.
+        return "Thanks for your feedback!"   # simple confirmation text
+ ```
+
+## Flask Blueprints (Alternate Routing / Modularization)
+**blueprint is mainly about routing + organizing chunks of your app.**
+- **What**: A *Blueprint* is a mini Flask module that groups related routes, templates, and logic, but is **not** a full app. It must be plugged into a real app with `app.register_blueprint(...)`.
+
+- **Why**
+  - **Organization**: split big apps into chunks, BETTER FOR BIG APPS  
+    - `pages` → home/about/contact, `auth` → login/logout/register, `api` → JSON endpoints
+  - **Reusability**: reuse the same blueprint in different projects.
+  - **Scalability**: add features by adding blueprints, not editing one giant `app.py`.
+  - **Team-friendly**: each dev owns a blueprint/module.
+  - **Namespaces**: avoids name clashes; use `url_for("pages.home")` vs `url_for("auth.login")`.
+
+- **How blueprints modularize the app**
+  - Each feature lives in its own file/package (routes, templates, static).
+  - The main app (`create_app`) only needs to **register** the pieces.
+  - You can enable/disable sections by registering/unregistering blueprints.
+
+
+### Define + Register a Blueprint Example
+**Define**
+```python
+# pages.py  (feature module)
+from flask import Blueprint, render_template
+
+pages_bp = Blueprint("pages", __name__)  # name "pages" = url_for("pages.home")
+
+@pages_bp.route("/")        # "/" route on this blueprint
 def home():
-    return render_template("pages/home.html")  # looks in templates/pages/home.html
+    return render_template("home.html")
 
-@pages_bp.route("/search")
-def search():
-    q = request.args.get("q","")          # query string: ?q=python
-    return f"Results for {q}"
+@pages_bp.route("/about")   # "/about" route on this blueprint
+def about():
+    return render_template("about.html")
 ```
-
-### **`app/__init__.py` – application factory**
-
+**Register**
 ```python
+# __init__.py  (application factory)
 from flask import Flask
 from .pages import pages_bp
 
 def create_app():
-    app = Flask(__name__)               # create new app instance
-    app.config["SECRET_KEY"] = "dev"    # example config
-    app.register_blueprint(pages_bp)    # attach blueprint routes to app
-    # app.register_blueprint(pages_bp,url_prefix="/pages")  # optional prefix
+    app = Flask(__name__)
+    app.register_blueprint(pages_bp)              # URLs: "/", "/about"
+    # app.register_blueprint(pages_bp, url_prefix="/pages")
+    # → URLs: "/pages/", "/pages/about"
     return app
 ```
 
-### **Running with factory (example `run.py`):**
-
+### URL building with `url_for`
+url_for(endpoint, **values):
+- Builds URLs from view/endpoint name (not hard-coded strings).
+- Updates automatically if route path changes.
+- Fills dynamic parts: url_for("pages.profile", user_id=1) -> "/user/1"
 ```python
-from app import create_app
-app = create_app()      # app built by factory
+from flask import url_for, redirect  # import in Python files
 
-if __name__=="__main__":
-    app.run(debug=True)
+@app.route("/user/<int:id>")           # Dynamic Route
+def user_profile(id): ...              # endpoint name = "user_profile"
+url_for("user_profile", id=3)          # "/user/3" (fills <int:id>)
+
+# with blueprint "pages" and def home(): ...
+url_for("pages.home")                  # uses blueprint namespace
+
+redirect(url_for("about"))             # build URL then redirect
+
+url_for("pages.profile", user_id=42)
+# endpoint = "pages.profile"
+# values  = {"user_id": 42}
+# result  = "/user/42"
+```
+## Dynamic URL Paremeter
+```python
+"/user/<id>" → # DYNAMIC URL PARAMETER.
+Matches /user/ryan, /user/123, /user/anything.
+The part in < > becomes a function argument.
+
+"/user/<int:id>" → # DYNAMIC URL PARAMETER WITH TYPE CONVERTER.
+#FLASK WILL CONVERT "5" --> 5
+
+@app.route("/user/<id>")
+def dynamic_example(id):
+    return f"User ID is {id}"
 ```
 
-## 3) Routing + url_for (static, dynamic, methods)
 
+```
+# **Flask: Views and Requests**
+## Views: The functions under Routes (`@app.route`, `@pages_bp.route`)
+**The same view(function) handles GET and POST, and chooses logic based on request.method**
 ```python
-from flask import Flask, request, render_template, redirect, url_for
-app = Flask(__name__)
+from flask import request, render_template
 
-@app.route("/about")               # static URL
-def about():
-    return render_template("about.html")
+@app.route("/feedback", methods=["GET", "POST"])
+def feedback():                # ← this is the *view function*
+    if request.method == "GET":
+        return render_template("feedback.html")  # show form
+    if request.method == "POST":
+        msg = request.form.get("message")        # handle form submit
+        return "Thanks!"
+```
+## The `request` object
+- Represents the **current HTTP request** (everything the browser sent).
+- Import in views: `from flask import request`
+- Important:
+  - `request.method` → "GET", "POST", etc. (which HTTP method was used)
+  - `request.args` → access query parameters in URL (usually with **GET**).
+  - `request.form` → form fields sent in request body (usually with **POST**).
 
-@app.route("/user/<int:user_id>")  # dynamic int converter
-def user_profile(user_id):
-    return f"User id = {user_id}"
+### Accessing Query parameters – `request.args`
+- Query Parameters: Data in the **URL after `?`** (query string), typically on **GET** requests.
+- Example URL: `/search?term=cat&limit=10`
+- In view:
+```python
+  term = request.args.get("term")     # "cat"
+  limit = request.args.get("limit")   # "10" (string)
+```
+### Accessing form data - `request.form`
+- Form data: Key–value data sent in the HTTP **request body** (not the URL) from an HTML `<form>`.
+- Typically on **POST** requests (`<form method="post">`), but any method with form-encoded body can use it.
+- Example flow:
+  - HTML: `<form method="post" action="/login">`
+  - Browser sends: `POST /login` with body `username=ryan&password=secret`
+  - In view: use `request.form` to read `"username"` / `"password"`.
 
-@app.route("/post/<slug>")        # dynamic string by default
-def show_post(slug):
-    return f"Post: {slug}"
-
-@app.route("/login",methods=["GET","POST"])
+```text
+- request.form["field"]          # strict, KeyError if missing
+- request.form.get("field")      # safer, returns None if missing
+- request.form.get("field", "")  # safer with default
+- request.form.getlist("field")  # checkbox / multi-select
+```
+```python
+@pages_bp.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method=="POST":
-        username = request.form.get("username")  # POST form field
-        # auth logic...
-        return redirect(url_for("dashboard"))    # build URL from endpoint name
-    return render_template("login.html")         # GET: show form
-
-@app.route("/dashboard")
-def dashboard():
-    return "Welcome!"
+    if request.method == "POST":
+        # 🔹 access form data sent from browser
+        username = request.form.get("username")  # safe, returns None if missing
+        password = request.form["password"]      # raises KeyError if missing
 ```
+## Responses: `redirect`, `render_template`.
+**In Flask, your view function must return a response.
+Two super-common helpers for this are `render_template` and `redirect`**
+```python
+from flask import Blueprint, render_template, request, redirect, url_for
 
-### **In template (Jinja) – link building with `url_for`:**
+bp = Blueprint("pages", __name__)
 
-```html
-<a href="{{ url_for('about') }}">About</a>       <!-- /about -->
-<a href="{{ url_for('user_profile',user_id=5) }}">User 5</a>
-<a href="{{ url_for('login') }}">Login</a>
+@bp.route("/")
+def home():
+    # render_template -> load templates/home.html, return HTML response
+    return render_template("home.html", title="Home")
+
+@bp.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username")  # form data from POST body
+        password = request.form.get("password")
+        # (check creds, maybe flash error, etc.)
+        return redirect(url_for("pages.home"))   # redirect -> new GET to "/"
+    # first visit or failed login: show form
+    return render_template("login.html")
 ```
+```text
+Responses (Flask)
+- render_template("file.html", x=1)
+    -> uses Jinja2 template in templates/ dir
+    -> injects vars as {{ x }} and returns HTML response
+- redirect("/path") / redirect(url_for("pages.home"))
+    -> returns 3xx response with Location header
+    -> browser does NEW GET to that URL
+    -> used after POST (Post/Redirect/Get)
+```
+### Flask Application Lifecycle
+<img src="images/FlaskApplicationLifecycle.png" width="300">
 
 ---
+# **Flask-SQLAlchemy**
+In a typical Flask + SQLAlchemy app, they “meet” in 3 places:
 
-## 4) Views & Request Data + Responses (render_template / redirect)
+**1) app/__init__.py      → configure DB + init SQLAlchemy with Flask app**
 
-```python
-from flask import Flask, request, render_template, redirect, url_for
-app = Flask(__name__)
+**2) app/models.py        → define models that inherit from db.Model**
 
-@app.route("/search")
-def search():
-    # /search?term=flask&page=2
-    term = request.args.get("term","")    # query string (?term=)
-    page = request.args.get("page",1,type=int)
-    context = {"term":term,"page":page}
-    return render_template("search.html",**context)  # HTML response
+**3) app/views.py or app/routes.py  → use models + db.session to query/save**
 
-@app.route("/contact",methods=["GET","POST"])
-def contact():
-    if request.method=="POST":
-        name = request.form.get("name")     # POST form body
-        msg  = request.form.get("message")
-        # process/store...
-        return redirect(url_for("thanks",name=name))  # HTTP 302 → /thanks/<name>
-    return render_template("contact.html")  # GET: show form
+## 1.) app/init.py: CONFIG + DB SETUP
+```text
+Plain SQLAlchemy init.py
+ - You must create everything manually:
+    engine = create_engine("sqlite:///db.db")
+    Session = sessionmaker(bind=engine)
+    class Base(DeclarativeBase): pass
+    class Product(Base): # ALL Models inherit from Base
 
-@app.route("/thanks/<name>")
-def thanks(name):
-    return render_template("thanks.html",name=name)
+Flask-SQLAlchemy init.py (Does the same as above)
+ - The SQLAlchemy() extension builds all of this for you, Instead You just do:
+    db = SQLAlchemy()
+    db.init_app(app)
+    class Product(db.Model): # ALL Models inherit from db.model
 ```
 
-### **Key mini-reminders:**
-
-* `request.args` → query string (`GET /path?x=1`)
-* `request.form` → form body from POST
-* `render_template("file.html",x=1)` → returns HTML response
-* `redirect(url_for("endpoint",**params))` → HTTP redirect to another route
-
-
-# Flask-SQLAlchemy (ORM) – compact cheat sheet 
-
 ```python
-# --- CONFIG + DB SETUP ---
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import select
 
-db = SQLAlchemy()                                     # db = engine + session + Model base
+db = SQLAlchemy()                                     # db = engine + session + Model base. Flask allows us to skip 
 
-def create_app():
+def create_app():   # APPLICATION FACTORY
     app = Flask(__name__)
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///taskmanager.db"  # DB URL (driver://path)
     app.config["SQLALCHEMY_ECHO"] = True             # log SQL in console (dev only)
@@ -1068,161 +1156,260 @@ def create_app():
     with app.app_context(): db.create_all()          # create tables for all db.Model subclasses
     return app
 ```
+## 2.) app/models.py: Where we define our DB tables as Python classes.`
 
-## MODELS + ONE-TO-MANY
+**SQLalchemy only:** models inherit from `Base`, use bare `Column`, `Integer`, etc.
+
+**Flask + SQLalchemy:** models inherit `db.Model`  and use `db.Column`, `db.Integer`,
 ```python
-from datetime import datetime
+# This file = where we define our DB tables as Python classes.
 
-class User(db.Model):                                 # inherit from db.Model → table
-    __tablename__ = "user"                            # explicit table name
-    id = db.Column(db.Integer, primary_key=True)      # INTEGER PK AUTOINCREMENT
-    username = db.Column(db.String(80), unique=True, nullable=False)  # UNIQUE, NOT NULL
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)      # default timestamp
-    tasks = db.relationship(                          # one User → many Task (ORM link, no column)
-        "Task", back_populates="assignee",
-        cascade="all, delete-orphan"                  # delete user → delete all their tasks
+from . import db  # db = SQLAlchemy() created in app/__init__.py
+
+class Product(db.Model):
+    """Single table example: products in a store."""
+
+    __tablename__ = "product"  # actual table name in the database
+
+    id = db.Column(db.Integer, primary_key=True)          # PK: unique row id
+    name = db.Column(db.String(100), nullable=False)      # NOT NULL name
+    price = db.Column(db.Float, nullable=False)           # NOT NULL price
+    in_stock = db.Column(db.Boolean, default=True)        # default True
+
+    def __repr__(self):
+        # nice string when you print(Product(...))
+        return f"<Product id={self.id} name={self.name!r}>"
+```
+## 3.) app/views.py  (or app/routes.py): Use models + db.session to query/save data.
+
+**SQLalchemy only:** you instantiate Session() yourself and pass it around. No HTTP, just Python code.
+
+**Flask + SQLalchemy:** you use the global db.session provided by the extension inside views/routes, and also handle HTTP (request, render_template, redirect).
+```python
+from flask import Blueprint, render_template, request, redirect, url_for
+from . import db                  # db = SQLAlchemy() from __init__.py
+from .models import Product       # our model class
+
+store_bp = Blueprint("store", __name__)
+
+@store_bp.route("/products")
+def list_products():
+    # READ: query all products from the DB
+    products = db.session.query(Product).all()
+    return render_template("products/list.html", products=products)
+
+@store_bp.route("/products/new", methods=["GET", "POST"])
+def create_product():
+    if request.method == "POST":
+        # READ form data from POST body
+        name = request.form.get("name")
+        price = float(request.form.get("price", 0))
+
+        # CREATE: make a Product object (not in DB yet)
+        product = Product(name=name, price=price)
+
+        # ADD + COMMIT = insert row into DB
+        db.session.add(product)
+        db.session.commit()
+
+        # go back to list page after saving
+        return redirect(url_for("store.list_products"))
+
+    # GET: show the form
+    return render_template("products/new.html")
+```
+
+
+
+## realtionship(), foreignkey(), cascade behaviours and back_populates
+```
+
+db.ForeignKey("user.id"): Links ROWS in DATABASE
+A FK is constraint on a column that says: “This column must match a primary key in another table.”
+- Used inside db.Column on CHILD model. CHILD MODEL ALWAYS HAS FOREIGN KEY
+- DB constraint: child value must exist in parent table.
+- Defines direction: Task is child, User is parent. (see below)
+Example: user_id: Mapped[int] = mapped_column(ForeignKey("user_table.id"))
+ForeignKey("user_table.id") → "user_table" = parent table, "id" = parent column, and whichever model defines this column is the CHILD.
+
+db.relationship("Model")
+- Python-side link between models (no DB column created).
+- Lets you access related objects (parent→children / child→parent).
+- Must match the ForeignKey on the other model.
+Example: tasks = tasks: Mapped[List["Task"]] = relationship(back_populates="assignee")
+
+back_populates: links ATTRIBUTES in PYTHON - ORM thing
+ORM = maps Python classes/objects to DB tables/rows so you can use user.name instead of writing raw SQL
+
+- back_populates used inside db.relationship() call, to connect two sides of a relationship allowing you to do user.name or user.email instead of writing raw SQL (see below) 
+ONE TO MANY: One child and One parent. The parent is the model that has one, and the child is the model that has many. CHILD IS ALWAYS THE MODEL WITH THE FOREIGN KEY (SEE BELOW)
+MANY TO MANY: no child no parents they are equals
+
+Cascade behaviors
+- Tell SQLAlchemy what happens to children when parent changes.
+"delete"          = delete children when parent deleted
+"delete-orphan"   = delete children if parent deleted OR relationship broken
+"all"             = all major cascades enabled
+"save-update"     = If you add ONLY the parent to the session, SQLAlchemy also saves the new children, useful when parent + new children are created before the same commit. Works because the children are linked to the parent via relationship()
+
+Reminder: back_populate is a 2 way relationship for Python Objects, foreign key is 1 way relationship for the DB
+```
+```python
+#EXAMPLE OF ALL 4
+class User(Base):
+    __tablename__ = "user"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tasks: Mapped[List["Task"]] = relationship(
+        back_populates="assignee",
+        cascade="all, delete-orphan" #Cascade goes inside parent
     )
 
-class Task(db.Model):
+class Task(Base):
     __tablename__ = "task"
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    is_done = db.Column(db.Boolean, default=False, nullable=False)
-    assignee_id = db.Column(                          # actual FK column in “many” side
-        db.Integer, db.ForeignKey("user.id"), nullable=False
-    )
-    assignee = db.relationship(                       # many Task → one User (Python side)
-        "User", back_populates="tasks"
-    )
 
-    def __repr__(self): return f"<Task {self.title!r}>"  # debug string; !r = repr(self.title)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id")) # Child defines user table and points to id column
+    assignee: Mapped["User"] = relationship(back_populates="tasks")
 ```
 
-## MANY-TO-MANY (ASSOCIATION TABLE)
+
+
+### Relationship patterns
+**One-to-Many VS Many-to-Many:**
+* One-to-Many: The Foreign Key is placed directly inside the "Child" (Many) table
+
+* Many-to-Many: You cannot place Foreign Keys in the main tables. You must create a third Association Class (Middle Table) that holds two Foreign Keys
 ```python
-task_tag = db.Table(                                  # pure association TABLE (no extra cols)
-    "task_tag",
-    db.Column("task_id", db.Integer, db.ForeignKey("task.id"), primary_key=True),
-    db.Column("tag_id", db.Integer, db.ForeignKey("tag.id"), primary_key=True)
-)
+class Base(DeclarativeBase): pass
 
-class Tag(db.Model):
-    __tablename__ = "tag"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)
-    tasks = db.relationship(                          # Tag ↔ Task many-to-many
-        "Task", secondary=task_tag, back_populates="tags"
-    )
+# --- ONE TO MANY ---
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
+    books = relationship("Book", back_populates="owner")
 
-class Task(db.Model):
-    __tablename__ = "task"
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    tags = db.relationship(                           # uses same association table
-        "Tag", secondary=task_tag, back_populates="tasks"
-    )
+class Book(Base):
+    __tablename__ = "books"
+    id = Column(Integer, primary_key=True)
+    owner_id = Column(Integer, ForeignKey("users.id")) # <--- FK lives here
+    owner = relationship("User", back_populates="books")
+
+# --- MANY TO MANY ---
+class Enrollment(Base): # <--- This class joins Student class and Course class(Like the third table in SQLite)
+    __tablename__ = "enrollments"
+    student_id = Column(ForeignKey("students.id"), primary_key=True) # <--- FK 1
+    course_id = Column(ForeignKey("courses.id"), primary_key=True)   # <--- FK 2
+    student = relationship("Student", back_populates="courses")
+    course = relationship("Course", back_populates="students")
+
+class Student(Base):
+    __tablename__ = "students"
+    id = Column(Integer, primary_key=True)
+    courses = relationship("Enrollment", back_populates="student")
+
+class Course(Base):
+    __tablename__ = "courses"
+    id = Column(Integer, primary_key=True)
+    students = relationship("Enrollment", back_populates="course")
 ```
+# Database Operations (CRUD)
 
-## MANY-TO-MANY (ASSOCIATION OBJECT WITH EXTRA DATA)
-```python
-class TaskTag(db.Model):                              # association OBJECT = extra columns allowed
-    __tablename__ = "task_tag"
-    task_id = db.Column(db.Integer, db.ForeignKey("task.id"), primary_key=True)
-    tag_id  = db.Column(db.Integer, db.ForeignKey("tag.id"), primary_key=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    task = db.relationship("Task", back_populates="task_tags")
-    tag  = db.relationship("Tag", back_populates="task_tags")
-
-class Task(db.Model):
-    __tablename__ = "task"
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    task_tags = db.relationship(                      # one Task → many TaskTag rows
-        "TaskTag", back_populates="task",
-        cascade="all, delete-orphan"                  # delete task → delete link rows
-    )
-
-class Tag(db.Model):
-    __tablename__ = "tag"
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)
-    task_tags = db.relationship(                      # one Tag → many TaskTag rows
-        "TaskTag", back_populates="tag",
-        cascade="all, delete-orphan"
-    )
-```
-## CREATE (C in CRUD)
+### Session
+In SQLAlchemy, a Session is like a temporary staging area for your database changes. 
 
 ```python
-u = User(username="ryan", email="ryan@example.com")   # create Python object (not in DB yet)
-db.session.add(u)                                     # stage INSERT in current transaction
-db.session.commit()                                   # flush changes → DB + commit transaction
+db.session.add(obj) # takes python object and adds it as a row to the DB staged changes
+db.session.commit()  # Pushes staged changes to database
 
-t = Task(title="Study", assignee=u)                   # can set relationship instead of assignee_id
-db.session.add(t); db.session.commit()
+
+user = User(name="Ryan", email="ryan@example.com") # call the User class to create a NEW User object in memory → __init__ sets user.name and user.email to these values
+# this only makes the Python object; it’s NOT in the database until db.session.add(user) + db.session.commit()
+db.session.add(user)                                # stage it in the session (pending insert)
+db.session.commit()                                 # send all staged changes as 1 transaction → write to DB
 ```
 
-## READ / QUERY (2.0 STYLE)
-```python
-# all users ordered by username
-stmt = select(User).order_by(User.username)           # build SELECT * FROM user ORDER BY username
-users = db.session.execute(stmt).scalars().all()      # execute → get list[User]
 
-# filter with .where()
-stmt = select(Task).where(Task.is_done == False)      # WHERE is_done = 0
-open_tasks = db.session.execute(stmt).scalars().all()
+---
 
-# filter with multiple conditions
-stmt = select(Task).where(
-    Task.assignee_id == u.id,
-    Task.is_done == False
-).order_by(Task.title)
-user_tasks = db.session.execute(stmt).scalars().all()
+### Building a `select()` query
 
-# single row helpers
-one_user = db.session.execute(
-    select(User).where(User.username == "ryan")
-).scalar_one_or_none()                                # 0/1 results → User or None
+```py
+# Construct a complex query
+stmt = select(User).where(User.role == "admin").order_by(User.username)
 
-user = db.get_or_404(User, user_id)                   # SELECT by PK, abort(404) if not found
+# This translates roughly to:
+SELECT * FROM user WHERE role = 'admin' ORDER BY username;
 ```
 
-## UPDATE (U in CRUD)
-```python
-user = db.get_or_404(User, user_id)                   # load existing row as object
-user.email = "new@example.com"                        # modify fields (session marks as dirty)
-user.username = "newname"
-db.session.commit()                                   # on commit → UPDATE user SET ... WHERE id=?
+`select()` : Just like we did in data base it Selects from a specific table. and what it rutern is the selected coloumn in that specific table
 
-task = db.get_or_404(Task, task_id)
-task.is_done = True                                   # flip boolean
-db.session.commit()
+```py
+from sqlalchemy import select
+# Construct the query (nothing happens in the DB yet)
+stmt = select(User)
+# stmt is just a varibale 
 ```
 
-## DELETE (D in CRUD)
-```python
-user = db.get_or_404(User, user_id)
-db.session.delete(user)                               # mark object (and cascades) for DELETE
-db.session.commit()                                   # DELETE FROM user WHERE id=?; cascades run
+`.where()` : Adds a SQL WHERE clause to filter results. `.orderby()`:Adds a `SQL ORDER BY` clause to sort the results.
 
-task = db.get_or_404(Task, task_id)
-db.session.delete(task); db.session.commit()
-# if relationship had cascade="all, delete-orphan", children/association rows are removed too
+```py
+# Construct a complex query
+stmt = select(User).where(User.role == "admin").order_by(User.username)
+
+# This translates roughly to: 
+SELECT * FROM user WHERE role = 'admin' ORDER BY username;
+```
+### Execution
+once you have your statement ready (.select(),.where()...)you must explicitly run it using the session.
+`db.session.execute(stmt)`:  It sends the SQL statement to the database, runs it, and returns a Result object
+
+```py
+stmt = select(User).where(User.id == 1)
+# Run the query
+result = db.session.execute(stmt)
 ```
 
-## QUICK RECAP OF KEY SYNTAX
+### Retrieving Results
 
-```python
-# config: app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///file.db"
-# model base: class User(db.Model): id = db.Column(db.Integer, primary_key=True)
-# column types: db.Integer, db.String(80), db.Boolean, db.DateTime, db.Text, db.Float
-# constraints: primary_key=True, unique=True, nullable=False, default=value, db.ForeignKey("table.col")
-# one-to-many: db.relationship("Child", back_populates="parent", cascade="all, delete-orphan")
-# many-to-many: db.relationship("Other", secondary=assoc_table, back_populates="others")
-# session ops: db.session.add(obj); db.session.delete(obj); db.session.commit()
-# querying: stmt = select(Model).where(...).order_by(...); result = db.session.execute(stmt)
-# results: result.scalars().all(), .scalar_one(), .scalar_one_or_none()
-# helper: db.get_or_404(Model, pk)
+The `Result` object returned by `execute()` is flexible. You must tell SQLAlchemy how you want to format that data.
+```text
+.scalars(): convert row tuples → ORM objects, returns a lazy iterable (you can loop over it, but it's not a plain list)
+.scalars().all(): same objects, but forces the query + builds a regular Python list of them
+```
+```py
+stmt = select(User)
+users = db.session.execute(stmt).scalars().all()
+# users is now a list: [<User 1>, <User 2>, ...]
+```
+```text
+.scalar_one() expect exactly 1 row; 0 or >1 rows = error (use when "missing/duplicate = BUG", e.g. primary key)
+.scalar_one_or_none(): expect 0 or 1 row; >1 rows = error (MultipleResultsFound) #   0 rows -> None, 1 row -> object
 ```
 
+
+
+```py
+# Use case: Checking if a user exists (e.g., for login).
+stmt = select(User).where(User.email == "missing@example.com")
+user = db.session.execute(stmt).scalar_one_or_none()
+if user is None:
+    print("User not found")
+```
+
+---
+
+### Special Helper
+
+* `db.get_or_404(Model, id)` : What it does: This is a Flask-SQLAlchemy convenience method (not pure SQLAlchemy). It attempts to retrieve a row by its primary key.
+  Behavior:
+* If found: Returns the object. If not found: Immediately aborts the request and returns a **404 Not Found HTTP error** to the browser.
+
+```py
+# In a Flask route
+@app.route('/user/<int:user_id>')
+def get_user(user_id):
+    # If user_id doesn't exist, the code stops here and sends a 404 to the user
+    user = db.get_or_404(User, user_id)
+    return {"username": user.username}
+```
